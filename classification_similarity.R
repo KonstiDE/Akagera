@@ -17,13 +17,10 @@ for(c in 1:9){
   class_mean_vectors <- rbind(class_mean_vectors, bands_mean)
 }
 
-indices <- 1:ncell(raw21)
-length(indices)
-
 euclidian_func <- function (v){
   shortest_distance <- 99999999
   for(t in 1:9){
-    euclidean_dist <- dist(rbind(v[-7], class_mean_vectors[t, ]), method = "minkowski", p = 6)
+    euclidean_dist <- dist(rbind(rev(v[-7]), class_mean_vectors[t, ]), method = "euclidean")
 
     if(!is.na(euclidean_dist)){
         if(euclidean_dist < shortest_distance){
@@ -37,7 +34,8 @@ euclidian_func <- function (v){
   return(best_class)
 }
 
-results <- terra::app(raw21, euclidian_func)
+results <- terra::app(raw20, euclidian_func)
 
+plot(class20)
 plot(results)
 
