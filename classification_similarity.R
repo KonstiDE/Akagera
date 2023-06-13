@@ -11,6 +11,7 @@ library(ranger)
 
 raw20 <- rast("image_export_raw2020.tif")
 raw19 <- rast("image_export_raw2019.tif")
+raw14 <- rast("image_export_raw2014.tif")
 class20 <- rast("image_export_classified2020.tif")
 
 raw21 <- rast("image_export_raw2021.tif")
@@ -83,7 +84,7 @@ shuffled_df = df[sample(1:nrow(df)), ]
 nrow(shuffled_df)
 
 
-# Caret
+# Ranger
 
 set.seed(25111999)
 trainIndex <- 0.8 * nrow(df)
@@ -118,6 +119,12 @@ colnames(values) <- c("SR_B7", "SR_B6", "SR_B5", "SR_B4", "SR_B3", "SR_B2", "QA_
 predicts <- predict(model, values)
 predicted_values <- round(predicts$predictions)
 
-class21 <- class20
-setValues(class21, predicted_values)
-plot(class21)
+class14 <- class20
+class14[!is.na(class14) & (class14 != 0)] <- predicted_values
+
+plot(class14)
+plot(class20)
+
+unique(values(class14) - values(class20))
+
+writeRaster(class21, "classified_rf_2021.tif")
