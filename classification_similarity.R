@@ -66,23 +66,11 @@ colnames(classes) <- c("class")
 
 df <- cbind(vectors, classes)
 df <- df[df$class > 0 & !is.na(df[,1]),]
-
-
-sampled_df <- data.frame()
-for (class_value in 1:9) {
-  class_rows <- subset(df, class == class_value)
-  
-  sampled_rows <- class_rows[sample(nrow(class_rows), 10000), ]
-  sampled_df <- rbind(sampled_df, sampled_rows)
-}
-
-row.names(sampled_df) <- NULL
-nrow(sampled_df)
+df$class <- as.factor(df$class)
 
 # Use below here sampled df over df for balanced dataset
 shuffled_df = df[sample(1:nrow(df)), ]
 nrow(shuffled_df)
-
 
 # Ranger
 
@@ -95,14 +83,15 @@ tic()
 model <- ranger(
   class ~ SR_B2 + SR_B3 + SR_B4 + SR_B5 + SR_B6 + SR_B7, 
   data = trainData,
-  verbose = TRUE  
+  verbose = TRUE,
+  num.trees = 100
 )
 toc()
-
+#svmRadial
 
 predicts <- predict(model, testData)
 
-predicted_values <- round(predicts$predictions)
+predicted_values <- predicts$predictions
 actual_values <- testData$class
 
 cbind(predicted_values, actual_values)
@@ -112,17 +101,17 @@ sum((predicted_values == actual_values)) / nrow(testData) * 100
 
 
 # Predict actual landcover
-values <- values(raw21)
+values <- rev(terra::extract(raw19, 1:length(values(raw19)))[-7])
 values <- values[!is.na(values[,1]),]
-colnames(values) <- c("SR_B7", "SR_B6", "SR_B5", "SR_B4", "SR_B3", "SR_B2", "QA_PIXEL")
+colnames(values) <- c("SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7")
 
 predicts <- predict(model, values)
-predicted_values <- round(predicts$predictions)
+predicted_values <- predicts$predictions
 
-class14 <- class20
-class14[!is.na(class14) & (class14 != 0)] <- predicted_values
+class19 <- class20
+class19[!is.na(class19) & (class19 != 0)] <- predicted_values
 
-plot(class14)
+plot(class19)
 plot(class20)
 
 unique(values(class14) - values(class20))
